@@ -216,7 +216,6 @@ const FilterControls: React.FC = () => {
               <SelectValue placeholder="Select type..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
               {transactionTypeOptions.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type}
