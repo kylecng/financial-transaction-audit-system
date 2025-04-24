@@ -27,7 +27,7 @@ export const comparePassword = async (
  */
 export const generateToken = (user: Pick<User, 'id' | 'role'>): string => {
   const payload = {
-    userId: user.id,
+    id: user.id,
     role: user.role,
   };
 
@@ -52,16 +52,16 @@ export const generateToken = (user: Pick<User, 'id' | 'role'>): string => {
  */
 export const verifyToken = (
   token: string
-): { userId: number; role: string } | null => {
+): { id: number; role: string } | null => {
   try {
     // Explicitly type the decoded payload
     const decoded = jwt.verify(token, JWT_SECRET) as {
-      userId: number;
+      id: number;
       role: string;
       iat: number;
       exp: number;
     };
-    return { userId: decoded.userId, role: decoded.role };
+    return { id: decoded.id, role: decoded.role };
   } catch (error) {
     console.error('JWT Verification Error:', error);
     return null;
