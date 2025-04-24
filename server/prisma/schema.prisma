@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+  // Let Prisma use its default output location logic, which might handle pnpm workspaces better
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Represents a user in the system, either an auditor or a transactor.
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique // Unique username for login
+  passwordHash  String    // Hashed password using bcrypt
+  role          String    // User role, e.g., 'auditor' or 'transactor'
+  createdAt     DateTime  @default(now()) // Timestamp of user creation
+  transactions  Transaction[] // Relation: A user can create many transactions
+}
+
+// Represents a financial transaction recorded in the system.
+model Transaction {
+  id                 Int       @id @default(autoincrement()) // Unique transaction ID
+  transactionType    String    // e.g., 'Credit', 'Debit', 'Transfer'
+  amount             Decimal   // Transaction amount
+  currency           String    // Currency code (e.g., 'USD', 'EUR')
+  accountId          String    // Identifier for the account involved
+  transactionTimestamp DateTime // Timestamp of the transaction itself
+  description        String?   // Optional description
+  sourceSystem       String?   // Optional identifier of the system that generated the transaction
+  createdAt          DateTime  @default(now()) // Timestamp when the transaction was logged in *this* system
+  createdById        Int       // ID of the User who logged this transaction
+  createdBy          User      @relation(fields: [createdById], references: [id]) // Relation: A transaction is created by one user
+
+  @@index([transactionTimestamp]) // Index for efficient time-based queries
+  @@index([createdById]) // Index for efficient filtering by transactor
+}
