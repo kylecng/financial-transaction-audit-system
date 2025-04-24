@@ -1,7 +1,7 @@
 packages:
   # include packages in subfolders (e.g. apps, packages)
-  - "client"
-  - "server"
+  - 'client'
+  - 'server'
   # if you want to include all packages in a directory recursively:
   # - 'packages/**'
   # if you want to exclude some packages:
