@@ -1,5 +1,6 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors'; // Import CORS middleware
 import authRouter from './api/auth'; // Import the authentication routes
 import transactionRouter from './api/transactions'; // Import transaction routes
 import reportRouter from './api/reports'; // Import report routes
@@ -9,6 +10,16 @@ dotenv.config();
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001; // Use port from env or default to 3001
+
+// Configure CORS
+const clientOrigin = 'http://localhost:5173'; // Default Vite dev server port
+app.use(
+  cors({
+    origin: clientOrigin, // Allow requests only from the client origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  })
+);
 
 // Middleware to parse JSON bodies
 app.use(express.json());
