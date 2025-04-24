@@ -74,12 +74,17 @@ export const getReportTransactions = async (
     minAmount,
     maxAmount,
     keyword,
+    createdById,
   } = filters;
 
   // Construct the base 'where' clause for Prisma query
   const where: Prisma.TransactionWhereInput = {};
 
-  // Apply query parameter filters (Auditors see all, so no user.id filter)
+  // Apply query parameter filters (Auditors see all, so no user.id filter by default)
+  if (createdById) {
+    // Allow auditors to filter by specific user ID if provided
+    where.createdById = createdById;
+  }
   if (transactionType) {
     where.transactionType = { contains: transactionType, mode: 'insensitive' };
   }
@@ -186,18 +191,22 @@ export const getTransactions = async (
     minAmount,
     maxAmount,
     keyword,
+    createdById, // Add createdById filter
   } = filters;
 
   // Construct the base 'where' clause for Prisma query
   const where: Prisma.TransactionWhereInput = {};
 
-  // Apply role-based filtering
+  // Apply role-based filtering AND specific filters
   if (user.role === 'transactor') {
-    where.createdById = user.id;
+    where.createdById = user.id; // Transactors ONLY see their own
+  } else if (user.role === 'auditor' && createdById) {
+    // Auditors can optionally filter by createdById if provided
+    where.createdById = createdById;
   }
-  // Auditors see all transactions, so no additional user filter needed
+  // If auditor and createdById is not provided, no user filter is applied (sees all)
 
-  // Apply query parameter filters
+  // Apply other query parameter filters
   if (transactionType) {
     where.transactionType = { contains: transactionType, mode: 'insensitive' };
   }

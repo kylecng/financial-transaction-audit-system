@@ -18,6 +18,7 @@ const initialFilters: TransactionFilters = {
   minAmount: undefined,
   maxAmount: undefined,
   keyword: undefined,
+  createdById: undefined,
 };
 
 export const useFilterStore = create<FilterState & FilterActions>((set) => ({

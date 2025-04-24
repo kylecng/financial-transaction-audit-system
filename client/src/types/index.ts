@@ -34,6 +34,7 @@ export interface TransactionFilters {
   minAmount?: number;
   maxAmount?: number;
   keyword?: string; // For searching description, etc.
+  createdById?: number; // Add optional filter for creator user ID (for auditors)
 }
 
 // Types for pagination state (frontend)

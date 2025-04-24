@@ -48,6 +48,9 @@ const FilterControls: React.FC = () => {
   const [localMaxAmount, setLocalMaxAmount] = useState(
     filters.maxAmount?.toString() || ''
   );
+  const [localCreatedById, setLocalCreatedById] = useState(
+    filters.createdById?.toString() || ''
+  );
 
   // --- Debounced and Throttled Store Updates ---
 
@@ -148,6 +151,17 @@ const FilterControls: React.FC = () => {
     [throttledSetFilters]
   );
 
+  const handleCreatedByIdChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      const numericValue = value === '' ? undefined : Number(value);
+      setLocalCreatedById(value);
+      // Use throttle for consistency, though debounce might also work
+      throttledSetFilters({ createdById: numericValue });
+    },
+    [throttledSetFilters]
+  );
+
   // Handler for clearing all filters
   const handleClearFilters = useCallback(() => {
     clearFilters(); // Clears the store
@@ -159,6 +173,7 @@ const FilterControls: React.FC = () => {
     setLocalEndDate(undefined);
     setLocalMinAmount('');
     setLocalMaxAmount('');
+    setLocalCreatedById('');
   }, [clearFilters]);
 
   // Effect to sync local state if filters change externally (e.g., via clearFilters)
@@ -172,6 +187,7 @@ const FilterControls: React.FC = () => {
     setLocalEndDate(filters.endDate ? new Date(filters.endDate) : undefined);
     setLocalMinAmount(filters.minAmount?.toString() || '');
     setLocalMaxAmount(filters.maxAmount?.toString() || '');
+    setLocalCreatedById(filters.createdById?.toString() || '');
   }, [filters]); // Re-run only when store filters change
 
   return (
@@ -311,8 +327,24 @@ const FilterControls: React.FC = () => {
           />
         </div>
 
-        {/* Clear Filters Button - Placed outside the grid for better alignment */}
-        <div className="flex items-end justify-end sm:col-span-2 lg:col-span-1 xl:col-span-1">
+        {/* Created By ID (Auditor Only) */}
+        {user?.role === 'auditor' && (
+          <div className="space-y-1">
+            <Label htmlFor="createdById">Created By User ID</Label>
+            <Input
+              id="createdById"
+              type="number"
+              placeholder="Filter by User ID"
+              value={localCreatedById}
+              onChange={handleCreatedByIdChange}
+              min="1" // Assuming user IDs are positive integers
+            />
+          </div>
+        )}
+
+        {/* Clear Filters Button - Adjust span if needed based on new field */}
+        {/* Example: If the new field makes the grid uneven, adjust spans */}
+        <div className="flex items-end justify-end sm:col-span-1 lg:col-span-1 xl:col-span-1">
           <Button
             variant="outline"
             onClick={handleClearFilters}
