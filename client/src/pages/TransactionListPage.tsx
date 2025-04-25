@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react'; // Added useCallback
 import { useAuthStore } from '@/stores/authStore';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useFilterStore } from '@/stores/filterStore';
@@ -18,7 +18,7 @@ const TransactionListPage: React.FC = () => {
     isLoading,
     error,
     pagination,
-    fetchTransactions,
+    fetchTransactions, // Keep fetchTransactions
     setCurrentPage,
   } = useTransactionStore();
   const filters = useFilterStore((state) => state.filters);
@@ -42,7 +42,7 @@ const TransactionListPage: React.FC = () => {
           return <div className="text-right font-medium">{formatted}</div>;
         },
       },
-      { accessorKey: 'currency', header: 'Currency' },
+      // { accessorKey: 'currency', header: 'Currency' }, // Hide currency column for now
       { accessorKey: 'accountId', header: 'Account ID' },
       {
         accessorKey: 'transactionTimestamp',
@@ -78,6 +78,12 @@ const TransactionListPage: React.FC = () => {
     }
   };
 
+  // Function to refresh data - calls fetchTransactions
+  // Use useCallback to memoize the function if needed, though fetchTransactions itself should be stable from Zustand
+  const refreshData = useCallback(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
@@ -95,6 +101,7 @@ const TransactionListPage: React.FC = () => {
         error={error} // Error state from the store
         pagination={pagination} // Pagination state from the store
         onPageChange={handlePageChange} // Pass page change handler
+        refreshData={refreshData} // Pass the refreshData function
       />
     </div>
   );

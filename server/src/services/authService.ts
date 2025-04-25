@@ -51,3 +51,28 @@ export const authenticateUser = async (
 
   return authenticatedUser;
 };
+
+/**
+ * Fetches user details by user ID.
+ * @param userId - The ID of the user to fetch.
+ * @returns The User object (without password hash) if found, otherwise null.
+ */
+export const getUserById = async (userId: number): Promise<User | null> => {
+  const userRecord = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!userRecord) {
+    return null;
+  }
+
+  // Return user data excluding the password hash
+  const userRole = userRecord.role as User['role']; // Cast role
+  const user: User = {
+    id: userRecord.id,
+    username: userRecord.username,
+    role: userRole,
+  };
+
+  return user;
+};

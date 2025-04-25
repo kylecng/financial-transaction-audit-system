@@ -12,8 +12,7 @@ export interface AuthState {
 interface AuthActions {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  // Optional: Action to initialize state from storage on app load
-  initializeAuth: () => void;
+  initializeAuth: () => Promise<void>; // Changed to Promise<void>
 }
 
 const AUTH_TOKEN_KEY = 'authToken'; // Key for localStorage
@@ -21,7 +20,7 @@ const AUTH_TOKEN_KEY = 'authToken'; // Key for localStorage
 export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   user: null,
   token: null,
-  isLoading: false,
+  isLoading: true, // Start with loading true during initialization
   error: null,
 
   login: async (username, password) => {
@@ -33,8 +32,8 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
       );
       const { user, token } = response.data;
 
-      localStorage.setItem(AUTH_TOKEN_KEY, token); // Persist token
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`; // Set default header for subsequent requests
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       set({ user, token, isLoading: false, error: null });
     } catch (err) {
@@ -59,29 +58,39 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   logout: () => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     delete axios.defaults.headers.common['Authorization'];
-    set({ user: null, token: null, error: null });
+    set({ user: null, token: null, error: null, isLoading: false }); // Ensure isLoading is false on logout
   },
 
-  initializeAuth: () => {
+  // Modified initializeAuth to be async and fetch user data
+  initializeAuth: async () => {
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (token) {
-      // Basic check: If token exists, assume it's valid for now.
-      // A better approach would be to verify the token against the backend
-      // or decode it to get user info if the backend doesn't provide it on login.
-      // For simplicity here, we just set the token. We might need user info too.
-      // If the backend returns user info on login, we should store that too.
-      // Let's assume for now the token is enough to indicate logged-in status,
-      // and protected routes/components will fetch user details if needed or rely on backend validation.
+      set({ isLoading: true, error: null }); // Set loading true while verifying token
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // We don't have the user object here unless we stored it or decode the JWT (if safe)
-      // Setting a placeholder or fetching user details might be needed.
-      // For now, just setting the token. The user object remains null until a proper login or fetch.
-      set({ token });
-      // TODO: Consider fetching user details here if the token is valid
-      // e.g., call a '/api/me' endpoint
+      try {
+        // Assume an endpoint '/api/me' or similar exists to get user data from token
+        const response = await axios.get<{ user: User }>('/api/me');
+        set({ user: response.data.user, token, isLoading: false, error: null });
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        // Token is invalid or expired, or API is down
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        delete axios.defaults.headers.common['Authorization'];
+        set({
+          user: null,
+          token: null,
+          isLoading: false,
+          error: 'Session expired or invalid. Please log in again.',
+        });
+      }
+    } else {
+      // No token found, ensure state is clean and not loading
+      set({ user: null, token: null, isLoading: false, error: null });
     }
   },
 }));
 
 // Initialize auth state when the app loads
+// This triggers the async function. Components might initially see isLoading=true
+// until the user data is fetched or an error occurs.
 useAuthStore.getState().initializeAuth();

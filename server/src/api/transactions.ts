@@ -114,9 +114,12 @@ router.get(
 
     // --- Parse and Validate Query Parameters ---
 
+    console.log('REQ.QUERY', req.query); // Log the query parameters for debugging
+
     // Pagination
     const page = parseInt(req.query.page as string, 10) || 1;
     const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
+    console.log('PAGE_SIZE', pageSize);
     if (page <= 0 || pageSize <= 0 || pageSize > 100) {
       // Add a max page size limit
       return res.status(400).json({
@@ -185,11 +188,26 @@ router.get(
     if (req.query.keyword && typeof req.query.keyword === 'string') {
       filters.keyword = req.query.keyword;
     }
+    // Add parsing for createdById
+    if (req.query.createdById) {
+      const createdByIdVal = parseInt(req.query.createdById as string, 10);
+      if (!isNaN(createdByIdVal) && createdByIdVal > 0) {
+        filters.createdById = createdByIdVal;
+      } else {
+        return res
+          .status(400)
+          .json({
+            error: 'Bad Request',
+            message: 'Invalid createdById format. Must be a positive integer.',
+          });
+      }
+    }
 
     // --- Call Service Layer ---
     try {
       // Cast req.user to User type, assuming authenticateToken populates it correctly
       const user = req.user as User;
+      // Pass the updated filters object which now includes createdById if provided
       const result = await getTransactions(filters, pagination, user);
 
       res.status(200).json(result); // { data: Transaction[], totalCount: number }

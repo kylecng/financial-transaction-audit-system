@@ -98,7 +98,7 @@ export const useTransactionStore = create<
       const params = {
         ...cleanedFilters,
         page: currentPage,
-        limit: pageSize,
+        pageSize: pageSize,
       };
 
       // Ensure Authorization header is set if token exists (from authStore)

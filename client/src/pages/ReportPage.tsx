@@ -18,7 +18,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useTransactionStore } from '@/stores/transactionStore';
-import { Transaction } from '@/types'; // Assuming types are correctly defined
+import { useShallow } from 'zustand/react/shallow'; // Import useShallow
+import { Transaction } from '@/types';
 
 // Helper to format date strings (adjust format as needed)
 const formatDate = (dateString: string | Date | undefined | null): string => {
@@ -54,13 +55,16 @@ const ReportPage: React.FC = () => {
     reportData,
     isGeneratingReport,
     reportError,
-  } = useTransactionStore((state) => ({
-    generateReport: state.generateReport,
-    clearReport: state.clearReport,
-    reportData: state.reportData,
-    isGeneratingReport: state.isGeneratingReport,
-    reportError: state.reportError,
-  }));
+  } = useTransactionStore(
+    useShallow((state) => ({
+      // Wrap the selector with useShallow
+      generateReport: state.generateReport,
+      clearReport: state.clearReport,
+      reportData: state.reportData,
+      isGeneratingReport: state.isGeneratingReport,
+      reportError: state.reportError,
+    })) // Remove the second argument
+  );
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 

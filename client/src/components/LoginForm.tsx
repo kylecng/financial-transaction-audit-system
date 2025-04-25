@@ -21,18 +21,16 @@ const LoginForm: React.FC = () => {
   useEffect(() => {
     if (user) {
       // Error state is handled by the login action itself
-      // Redirect based on role
-      if (user.role === 'auditor') {
-        navigate('/transactions');
-      } else if (user.role === 'transactor') {
-        // Redirect transactors to log transaction page as per requirement
-        navigate('/log-transaction');
+      // Redirect based on role - Align with App.tsx routes
+      if (user.role === 'auditor' || user.role === 'transactor') {
+        // Updated condition
+        navigate('/transactions'); // Redirect both roles to transactions
       } else {
         // Fallback or handle other roles if necessary
         navigate('/'); // Or a default dashboard
       }
     }
-  }, [user, navigate, error]); // Removed clearError from dependencies
+  }, [user, navigate]); // Removed error from dependencies as redirection depends primarily on user state
 
   // Removed cleanup useEffect for clearError
 

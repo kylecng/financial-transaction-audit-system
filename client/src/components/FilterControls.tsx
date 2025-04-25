@@ -95,7 +95,7 @@ const FilterControls: React.FC = () => {
 
   const handleKeywordChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
+      const value = event.target.value.trim(); // Trim whitespace
       setLocalKeyword(value);
       debouncedSetKeyword(value);
     },
@@ -112,7 +112,7 @@ const FilterControls: React.FC = () => {
 
   const handleAccountIdChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
+      const value = event.target.value.trim(); // Trim whitespace
       setLocalAccountId(value);
       throttledSetFilters({ accountId: value || undefined });
     },
@@ -138,7 +138,7 @@ const FilterControls: React.FC = () => {
       filterName: 'minAmount' | 'maxAmount',
       event: React.ChangeEvent<HTMLInputElement>
     ) => {
-      const value = event.target.value;
+      const value = event.target.value.trim(); // Trim whitespace
       const numericValue = value === '' ? undefined : Number(value);
 
       if (filterName === 'minAmount') {
@@ -146,18 +146,23 @@ const FilterControls: React.FC = () => {
       } else {
         setLocalMaxAmount(value);
       }
-      throttledSetFilters({ [filterName]: numericValue });
+      // Only update store if it's a valid number or empty
+      if (!isNaN(numericValue!) || value === '') {
+        throttledSetFilters({ [filterName]: numericValue });
+      }
     },
     [throttledSetFilters]
   );
 
   const handleCreatedByIdChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
+      const value = event.target.value.trim(); // Trim whitespace
       const numericValue = value === '' ? undefined : Number(value);
       setLocalCreatedById(value);
-      // Use throttle for consistency, though debounce might also work
-      throttledSetFilters({ createdById: numericValue });
+      // Only update store if it's a valid number or empty
+      if (!isNaN(numericValue!) || value === '') {
+        throttledSetFilters({ createdById: numericValue });
+      }
     },
     [throttledSetFilters]
   );
